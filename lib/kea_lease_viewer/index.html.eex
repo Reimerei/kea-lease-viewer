@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <style>
+    body {
+      background-color:#003a3e;
+      font-size:18px;
+      color:white;
+    }
+    table, th, td {
+      border-collapse: collapse;
+      border:2px solid #fec300;
+      padding: 15px;
+    }
+    table, td {
+      font-family: monospace;
+    }
+  </style>
+  <body>
+    <table>
+      <tr>
+        <th>IP</th>
+        <th>Mac</th>
+        <th>Vendor</th>
+        <th>Client Hostname</th>
+        <th>Starts</th>
+        <th>Ends</th>
+      </tr>
+
+      <%= for lease <- leases do %>
+        <tr>
+          <td><%= lease."ip-address" %></td>
+          <td><%= lease."hw-address" %></td>
+          <td><%= "todo" %></td>
+          <td><%= lease.hostname %></td>
+          <td><%= lease.cltt |> DateTime.from_unix!() |> Calendar.strftime("%y-%m-%d %I:%M:%S")%></td>
+          <td><%= lease.cltt + lease."valid-lft" |> DateTime.from_unix!() |> Calendar.strftime("%y-%m-%d %I:%M:%S")%></td>
+        </tr>
+      <% end %>
+    </table>
+  </body>
+</html>
