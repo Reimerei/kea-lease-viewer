@@ -21,7 +21,7 @@
         <th>IP</th>
         <th>Mac</th>
         <th>Vendor</th>
-        <th>Client Hostname</th>
+        <th>Hostname</th>
         <th>Starts</th>
         <th>Ends</th>
       </tr>
@@ -30,10 +30,10 @@
         <tr>
           <td><%= lease."ip-address" %></td>
           <td><%= lease."hw-address" %></td>
-          <td><%= "todo" %></td>
+          <td><%= lease.vendor %></td>
           <td><%= lease.hostname %></td>
-          <td><%= lease.cltt |> DateTime.from_unix!() |> Calendar.strftime("%y-%m-%d %I:%M:%S")%></td>
-          <td><%= lease.cltt + lease."valid-lft" |> DateTime.from_unix!() |> Calendar.strftime("%y-%m-%d %I:%M:%S")%></td>
+          <td><%= lease.cltt |> DateTime.from_unix!() |> Calendar.strftime("%Y-%m-%d %H:%M:%S")%></td>
+          <td><%= lease.cltt + lease."valid-lft" |> DateTime.from_unix!() |> Calendar.strftime("%Y-%m-%d %I:%M:%S")%></td>
         </tr>
       <% end %>
     </table>

@@ -1,7 +1,7 @@
 KEA_HOST=10.23.0.1
 export KEA_SOCKET_PATH=/tmp/kea/dhcp4.sock
 
-console:
+run:
 	nix develop
 
 mount_socket:
@@ -11,3 +11,6 @@ mount_socket:
 deps-update:
 	mix deps.update --all
 	mix2nix > deps.nix
+
+update-mac-vendors:
+	wget wget https://www.wireshark.org/download/automated/data/manuf -O priv/mac_vendors.txt
