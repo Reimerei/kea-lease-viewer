@@ -4,7 +4,7 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, config, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       with nixpkgs.lib;
       let
@@ -39,7 +39,7 @@
               services.${pname} = {
                 enable = mkEnableOption "${pname} service";
 
-                kea_socket_path = mkOption {
+                keaSocketPath = mkOption {
                   type = types.path;
                   description = "Path to the kea control socket. It needs to have read permissions for the '${pname}' user. Also the libdhcp_lease_cmds hook needs to be enabled.";
                 };
