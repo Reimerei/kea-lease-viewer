@@ -36,6 +36,20 @@ defmodule KeaLeaseViewer.SocketConnector do
     leases
   end
 
+  def get_all_leases() do
+    subnet_ids =
+      get_subnets_cached()
+      |> Enum.map(& &1.id)
+
+    command = %{
+      command: "lease4-get-all",
+      arguments: %{subnets: subnet_ids}
+    }
+
+    {:ok, %{leases: leases}} = send_command(command)
+    leases
+  end
+
   def send_command(command) when is_map(command) do
     socket_path = Application.fetch_env!(:kea_lease_viewer, :socket_path)
     gen_tcp_opts = [:binary, active: true, reuseaddr: true]

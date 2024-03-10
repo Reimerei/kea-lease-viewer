@@ -10,12 +10,12 @@ let
   packages = with beamPackages; with self; {
     bandit = buildMix rec {
       name = "bandit";
-      version = "1.2.3";
+      version = "1.3.0";
 
       src = fetchHex {
         pkg = "bandit";
         version = "${version}";
-        sha256 = "3e29150245a9b5f56944434e5240966e75c917dad248f689ab589b32187a81af";
+        sha256 = "bda37d6c614d74778a5dc43b8bcdc3245cd30619eab0342f58042f968f2165da";
       };
 
       beamDeps = [ hpax plug telemetry thousand_island websock ];
@@ -133,6 +133,19 @@ let
         pkg = "websock";
         version = "${version}";
         sha256 = "6105453d7fac22c712ad66fab1d45abdf049868f253cf719b625151460b8b453";
+      };
+
+      beamDeps = [];
+    };
+
+    zoneinfo = buildMix rec {
+      name = "zoneinfo";
+      version = "0.1.8";
+
+      src = fetchHex {
+        pkg = "zoneinfo";
+        version = "${version}";
+        sha256 = "3999755971bbf85f0c8c75a724be560199bb63406660585849f0eb680e2333f7";
       };
 
       beamDeps = [];

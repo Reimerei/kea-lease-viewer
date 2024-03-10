@@ -8,12 +8,26 @@ defmodule KeaLeaseViewer.Webserver do
 
   def call(conn, _opts) do
     page =
-      get_leases(conn.remote_ip)
-      |> render()
+      try do
+        get_leases(conn.remote_ip)
+        |> Enum.map(&mac_vendor_lookup/1)
+        |> Enum.map(&parse_timestamps/1)
+        |> Enum.sort_by(fn lease -> {lease."subnet-id", lease."ip-address"} end)
+        |> render()
+      catch
+        error ->
+          msg = "Error rendering page: #{inspect(error)}"
+          Logger.error(msg)
+          msg
+      end
 
     conn
     |> Plug.Conn.send_resp(200, page)
   end
+
+  # defp get_all_leases() do
+  #   KeaLeaseViewer.SocketConnector.get_all_leases()
+  # end
 
   defp get_leases(ip_tuple) do
     ip = IP.Address.from_tuple!(ip_tuple)
@@ -39,5 +53,19 @@ defmodule KeaLeaseViewer.Webserver do
       :error ->
         Map.put(lease, :vendor, "")
     end
+  end
+
+  defp parse_timestamps(%{"valid-lft": valid_lft, cltt: cltt} = lease) do
+    lease
+    |> Map.put(:starts, cltt |> unix_time_to_str())
+    |> Map.put(:ends, (cltt + valid_lft) |> unix_time_to_str())
+  end
+
+  defp unix_time_to_str(unix_time) do
+    timezone = Application.fetch_env!(:kea_lease_viewer, :timezone)
+
+    DateTime.from_unix!(unix_time)
+    |> DateTime.shift_zone!(timezone, Zoneinfo.TimeZoneDatabase)
+    |> Calendar.strftime("%Y-%m-%d %H:%M:%S")
   end
 end

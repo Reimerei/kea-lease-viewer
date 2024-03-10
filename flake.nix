@@ -17,6 +17,7 @@
         shellHook = ''
           export PORT=4000
           iex -S mix
+          exit 0
         '';
       });
 
@@ -46,9 +47,9 @@
             };
 
             port = mkOption {
-              type = types.string;
-              default = "80";
-              description = "Port to listen on";
+              type = types.int;
+              default = 4000;
+              description = "Port to listen on. Default: 4000";
             };
           };
         };
@@ -70,8 +71,9 @@
             after = ["network.target"];
 
             environment = {
-              PORT = cfg.port;
+              PORT = toString cfg.port;
               KEA_SOCKET_PATH = cfg.keaSocketPath;
+              RELEASE_DISTRIBUTION = "none";
             };
 
             serviceConfig = {

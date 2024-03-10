@@ -19,6 +19,7 @@
     <table>
       <tr>
         <th>IP</th>
+        <th>Subnet</th>
         <th>Mac</th>
         <th>Vendor</th>
         <th>Hostname</th>
@@ -29,11 +30,12 @@
       <%= for lease <- leases do %>
         <tr>
           <td><%= lease."ip-address" %></td>
+          <td><%= lease."subnet-id" %></td>
           <td><%= lease."hw-address" %></td>
           <td><%= lease.vendor %></td>
           <td><%= lease.hostname %></td>
-          <td><%= lease.cltt |> DateTime.from_unix!() |> Calendar.strftime("%Y-%m-%d %H:%M:%S")%></td>
-          <td><%= lease.cltt + lease."valid-lft" |> DateTime.from_unix!() |> Calendar.strftime("%Y-%m-%d %I:%M:%S")%></td>
+          <td><%= lease.starts %></td>
+          <td><%= lease.ends %></td>
         </tr>
       <% end %>
     </table>
