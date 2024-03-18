@@ -82,5 +82,9 @@ defmodule KeaLeaseViewer.SocketConnector do
   end
 
   defp parse_response(%{arguments: result}), do: {:ok, result}
-  defp parse_response(_), do: {:error, :unexpected_kea_response}
+
+  defp parse_response(other) do
+    Logger.error("Unexpected response from Kea: #{inspect(other)}")
+    {:error, :unexpected_kea_response}
+  end
 end
