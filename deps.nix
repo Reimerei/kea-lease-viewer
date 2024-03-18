@@ -21,6 +21,19 @@ let
       beamDeps = [ hpax plug telemetry thousand_island websock ];
     };
 
+    combine = buildMix rec {
+      name = "combine";
+      version = "0.10.0";
+
+      src = fetchHex {
+        pkg = "combine";
+        version = "${version}";
+        sha256 = "1b1dbc1790073076580d0d1d64e42eae2366583e7aecd455d1215b0d16f2451b";
+      };
+
+      beamDeps = [];
+    };
+
     hpax = buildMix rec {
       name = "hpax";
       version = "0.1.2";
@@ -36,12 +49,12 @@ let
 
     ip = buildMix rec {
       name = "ip";
-      version = "2.0.2";
+      version = "2.0.3";
 
       src = fetchHex {
         pkg = "ip";
         version = "${version}";
-        sha256 = "c1c567dc6ac2421fcd0a30912dc0a318dccb4475bb829402bffcad05a0b05b13";
+        sha256 = "19fa2f9c6f5cb288ca2192499888bd96f88af3564eaa7bbcfc1231ffdc5df8c2";
       };
 
       beamDeps = [];
@@ -97,6 +110,19 @@ let
       };
 
       beamDeps = [];
+    };
+
+    remote_ip = buildMix rec {
+      name = "remote_ip";
+      version = "1.1.0";
+
+      src = fetchHex {
+        pkg = "remote_ip";
+        version = "${version}";
+        sha256 = "616ffdf66aaad6a72fc546dabf42eed87e2a99e97b09cbd92b10cc180d02ed74";
+      };
+
+      beamDeps = [ combine plug ];
     };
 
     telemetry = buildRebar3 rec {

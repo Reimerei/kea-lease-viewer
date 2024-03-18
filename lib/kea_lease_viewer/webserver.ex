@@ -1,15 +1,18 @@
 defmodule KeaLeaseViewer.Webserver do
+  use Plug.Router
   require EEx
   require Logger
 
+  plug RemoteIp
+  plug :match
+  plug :dispatch
+
   EEx.function_from_file(:def, :render, "lib/kea_lease_viewer/templates/index.html.eex", [:leases])
 
-  def init(options), do: options
-
-  def call(conn, _opts) do
+  get "/" do
     page =
       try do
-        get_leases(conn.remote_ip)
+        get_leases_for_ip(conn.remote_ip)
         |> Enum.map(&mac_vendor_lookup/1)
         |> Enum.map(&parse_timestamps/1)
         |> Enum.sort_by(fn lease -> {lease."subnet-id", lease."ip-address"} end)
@@ -22,14 +25,14 @@ defmodule KeaLeaseViewer.Webserver do
       end
 
     conn
-    |> Plug.Conn.send_resp(200, page)
+    |> send_resp(200, page)
   end
 
-  # defp get_all_leases() do
-  #   KeaLeaseViewer.SocketConnector.get_all_leases()
-  # end
+  match _ do
+    send_resp(conn, 404, "not found")
+  end
 
-  defp get_leases(ip_tuple) do
+  defp get_leases_for_ip(ip_tuple) do
     ip = IP.Address.from_tuple!(ip_tuple)
 
     KeaLeaseViewer.SocketConnector.get_subnets_cached()
