@@ -12,7 +12,8 @@ defmodule KeaLeaseViewer.Webserver do
   get "/" do
     page =
       try do
-        get_leases_for_ip(conn.remote_ip)
+        # get_leases_for_ip(conn.remote_ip)
+        KeaLeaseViewer.SocketConnector.get_all_leases()
         |> Enum.map(&mac_vendor_lookup/1)
         |> Enum.map(&parse_timestamps/1)
         |> Enum.sort_by(fn lease -> {lease."subnet-id", lease."ip-address"} end)
@@ -44,7 +45,6 @@ defmodule KeaLeaseViewer.Webserver do
 
       %{id: id} ->
         KeaLeaseViewer.SocketConnector.get_leases(id)
-        |> Enum.map(&mac_vendor_lookup/1)
     end
   end
 
