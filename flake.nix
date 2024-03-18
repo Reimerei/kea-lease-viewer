@@ -16,6 +16,7 @@
         buildInputs = [nixpkgs.legacyPackages.${system}.elixir];
         shellHook = ''
           export PORT=4000
+          export LISTEN_ADDRESS=127.0.0.1
           iex -S mix
           exit 0
         '';
@@ -49,7 +50,13 @@
             port = mkOption {
               type = types.int;
               default = 4000;
-              description = "Port to listen on. Default: 4000";
+              description = "Port to listen on.";
+            };
+
+            listenAddress = mkOption {
+              type = types.str;
+              description = "Address to listen on.";
+              default = "127.0.0.1";
             };
           };
         };
@@ -64,7 +71,6 @@
           };
           users.groups.${pname} = {};
 
-          # systemd.serv
           systemd.services.${pname} = {
             enable = cfg.enable;
             wantedBy = ["multi-user.target"];
@@ -72,6 +78,7 @@
 
             environment = {
               PORT = toString cfg.port;
+              LISTEN_ADDRESS = cfg.listenAddress;
               KEA_SOCKET_PATH = cfg.keaSocketPath;
               RELEASE_DISTRIBUTION = "none";
             };
@@ -88,10 +95,6 @@
               '';
 
               Restart = "on-failure";
-
-              # Add capability to bind on port 80
-              CapabilityBoundingSet = "CAP_NET_BIND_SERVICE";
-              AmbientCapabilities = "CAP_NET_BIND_SERVICE";
             };
           };
         };
