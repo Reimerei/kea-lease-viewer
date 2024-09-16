@@ -15,6 +15,11 @@
       font-family: monospace;
     }
   </style>
+  <head>
+    <meta charset="UTF-8">
+    <title>DHCP Leases</title>
+    <meta http-equiv="refresh" content="5">
+  </head>
   <body>
     <table>
       <tr>
