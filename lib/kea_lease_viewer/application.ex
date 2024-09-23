@@ -1,6 +1,8 @@
 defmodule KeaLeaseViewer.Application do
   use Application
 
+  require Logger
+
   @impl true
   def start(_type, _args) do
     listen_address =
@@ -15,6 +17,16 @@ defmodule KeaLeaseViewer.Application do
     ]
 
     opts = [strategy: :one_for_one, name: KeaLeaseViewer.Supervisor]
+
+    startup_message()
+
     Supervisor.start_link(children, opts)
+  end
+
+  defp startup_message() do
+    """
+      Admin Subnets: #{inspect(Application.fetch_env!(:kea_lease_viewer, :admin_subnets))}
+    """
+    |> Logger.info()
   end
 end

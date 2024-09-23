@@ -12,8 +12,7 @@ defmodule KeaLeaseViewer.Webserver do
   get "/" do
     page =
       try do
-        # get_leases_for_ip(conn.remote_ip)
-        KeaLeaseViewer.SocketConnector.get_all_leases()
+        get_leases_for_ip(conn.remote_ip)
         |> Enum.map(&mac_vendor_lookup/1)
         |> Enum.map(&parse_timestamps/1)
         |> Enum.sort_by(fn lease -> {lease."subnet-id", lease."ip-address"} end)
@@ -34,6 +33,14 @@ defmodule KeaLeaseViewer.Webserver do
   end
 
   defp get_leases_for_ip(ip_tuple) do
+    if is_admin?(ip_tuple) do
+      KeaLeaseViewer.SocketConnector.get_all_leases()
+    else
+      get_subnet_leases(ip_tuple)
+    end
+  end
+
+  defp get_subnet_leases(ip_tuple) do
     ip = IP.Address.from_tuple!(ip_tuple)
 
     KeaLeaseViewer.SocketConnector.get_subnets_cached()
@@ -46,6 +53,15 @@ defmodule KeaLeaseViewer.Webserver do
       %{id: id} ->
         KeaLeaseViewer.SocketConnector.get_leases(id)
     end
+  end
+
+  defp is_admin?(ip_tuple) do
+    admin_ips = Application.fetch_env!(:kea_lease_viewer, :admin_subnets)
+
+    admin_ips
+    |> Enum.any?(fn subnet ->
+      IP.Prefix.contains_address?(subnet, IP.Address.from_tuple!(ip_tuple))
+    end)
   end
 
   defp mac_vendor_lookup(%{"hw-address": mac} = lease) do
