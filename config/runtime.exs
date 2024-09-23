@@ -6,7 +6,6 @@ defmodule Helper do
     |> String.split(",")
     |> Enum.map(&String.trim/1)
     |> Enum.map(&IP.Prefix.from_string/1)
-    |> dbg()
     |> Enum.filter(&match?({:ok, _}, &1))
     |> Enum.map(fn {:ok, ip} -> ip end)
   end
