@@ -58,6 +58,12 @@
               description = "Address to listen on.";
               default = "127.0.0.1";
             };
+
+            adminSubnets = mkOption {
+              type = types.str;
+              description = "Subnets that can see all leases.";
+              default = "";
+            };
           };
         };
 
@@ -81,6 +87,7 @@
               LISTEN_ADDRESS = cfg.listenAddress;
               KEA_SOCKET_PATH = cfg.keaSocketPath;
               RELEASE_DISTRIBUTION = "none";
+              ADMIN_SUBNETS = cfg.adminSubnets;
             };
 
             serviceConfig = {
