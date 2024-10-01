@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
   outputs = {
     self,
@@ -30,11 +30,20 @@
       with nixpkgs.lib; let
         pname = "kea-lease-viewer";
         version = "0.1.0";
-        mix_release = pkgs.beamPackages.mixRelease {
+        # beamPackages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlang_27;
+        beamPackages = pkgs.beamPackages;
+        mix_release = beamPackages.mixRelease {
           inherit version pname;
-
           removeCookie = false;
-          mixNixDeps = with pkgs; import ./deps.nix {inherit lib beamPackages;};
+
+          mixNixDeps = import ./deps.nix {
+            inherit beamPackages;
+            lib = pkgs.lib;
+            overrides = final: prev: {
+              syslog = prev.syslog.override {buildPlugins = [beamPackages.pc];};
+            };
+          };
+
           src = pkgs.nix-gitignore.gitignoreSource [] ./.;
         };
       in {

@@ -32,7 +32,8 @@ defmodule KeaLeaseViewer.MixProject do
       {:bandit, "~> 1.2"},
       {:ip, "~> 2.0"},
       {:zoneinfo, "~> 0.1"},
-      {:remote_ip, "~> 1.1"}
+      {:remote_ip, "~> 1.1"},
+      {:ex_syslogger, "~> 2.1"}
     ]
   end
 end

@@ -10,12 +10,12 @@ let
   packages = with beamPackages; with self; {
     bandit = buildMix rec {
       name = "bandit";
-      version = "1.3.0";
+      version = "1.5.7";
 
       src = fetchHex {
         pkg = "bandit";
         version = "${version}";
-        sha256 = "bda37d6c614d74778a5dc43b8bcdc3245cd30619eab0342f58042f968f2165da";
+        sha256 = "f2dd92ae87d2cbea2fa9aa1652db157b6cba6c405cb44d4f6dd87abba41371cd";
       };
 
       beamDeps = [ hpax plug telemetry thousand_island websock ];
@@ -34,14 +34,27 @@ let
       beamDeps = [];
     };
 
+    ex_syslogger = buildMix rec {
+      name = "ex_syslogger";
+      version = "2.1.0";
+
+      src = fetchHex {
+        pkg = "ex_syslogger";
+        version = "${version}";
+        sha256 = "a7c4ca96aacc8290dc6b338dd0080b9ba4ec3a5b93665a8a614f8c2d8d7dee8e";
+      };
+
+      beamDeps = [ jason syslog ];
+    };
+
     hpax = buildMix rec {
       name = "hpax";
-      version = "0.1.2";
+      version = "1.0.0";
 
       src = fetchHex {
         pkg = "hpax";
         version = "${version}";
-        sha256 = "2c87843d5a23f5f16748ebe77969880e29809580efdaccd615cd3bed628a8c13";
+        sha256 = "7f1314731d711e2ca5fdc7fd361296593fc2542570b3105595bb0bc6d0fad601";
       };
 
       beamDeps = [];
@@ -62,12 +75,12 @@ let
 
     jason = buildMix rec {
       name = "jason";
-      version = "1.4.1";
+      version = "1.4.4";
 
       src = fetchHex {
         pkg = "jason";
         version = "${version}";
-        sha256 = "fbb01ecdfd565b56261302f7e1fcc27c4fb8f32d56eab74db621fc154604a7a1";
+        sha256 = "c5eb0cab91f094599f94d55bc63409236a8ec69a21a67814529e8d5f6cc90b3b";
       };
 
       beamDeps = [];
@@ -75,12 +88,12 @@ let
 
     mime = buildMix rec {
       name = "mime";
-      version = "2.0.5";
+      version = "2.0.6";
 
       src = fetchHex {
         pkg = "mime";
         version = "${version}";
-        sha256 = "da0d64a365c45bc9935cc5c8a7fc5e49a0e0f9932a761c55d6c52b142780a05c";
+        sha256 = "c9945363a6b26d747389aac3643f8e0e09d30499a138ad64fe8fd1d13d9b153e";
       };
 
       beamDeps = [];
@@ -88,12 +101,12 @@ let
 
     plug = buildMix rec {
       name = "plug";
-      version = "1.15.3";
+      version = "1.16.1";
 
       src = fetchHex {
         pkg = "plug";
         version = "${version}";
-        sha256 = "cc4365a3c010a56af402e0809208873d113e9c38c401cabd88027ef4f5c01fd2";
+        sha256 = "a13ff6b9006b03d7e33874945b2755253841b238c34071ed85b0e86057f8cddc";
       };
 
       beamDeps = [ mime plug_crypto telemetry ];
@@ -101,12 +114,12 @@ let
 
     plug_crypto = buildMix rec {
       name = "plug_crypto";
-      version = "2.0.0";
+      version = "2.1.0";
 
       src = fetchHex {
         pkg = "plug_crypto";
         version = "${version}";
-        sha256 = "53695bae57cc4e54566d993eb01074e4d894b65a3766f1c43e2c61a1b0f45ea9";
+        sha256 = "131216a4b030b8f8ce0f26038bc4421ae60e4bb95c5cf5395e1421437824c4fa";
       };
 
       beamDeps = [];
@@ -114,25 +127,38 @@ let
 
     remote_ip = buildMix rec {
       name = "remote_ip";
-      version = "1.1.0";
+      version = "1.2.0";
 
       src = fetchHex {
         pkg = "remote_ip";
         version = "${version}";
-        sha256 = "616ffdf66aaad6a72fc546dabf42eed87e2a99e97b09cbd92b10cc180d02ed74";
+        sha256 = "2ff91de19c48149ce19ed230a81d377186e4412552a597d6a5137373e5877cb7";
       };
 
       beamDeps = [ combine plug ];
     };
 
+    syslog = buildRebar3 rec {
+      name = "syslog";
+      version = "1.1.0";
+
+      src = fetchHex {
+        pkg = "syslog";
+        version = "${version}";
+        sha256 = "4c6a41373c7e20587be33ef841d3de6f3beba08519809329ecc4d27b15b659e1";
+      };
+
+      beamDeps = [];
+    };
+
     telemetry = buildRebar3 rec {
       name = "telemetry";
-      version = "1.2.1";
+      version = "1.3.0";
 
       src = fetchHex {
         pkg = "telemetry";
         version = "${version}";
-        sha256 = "dad9ce9d8effc621708f99eac538ef1cbe05d6a874dd741de2e689c47feafed5";
+        sha256 = "7015fc8919dbe63764f4b4b87a95b7c0996bd539e0d499be6ec9d7f3875b79e6";
       };
 
       beamDeps = [];

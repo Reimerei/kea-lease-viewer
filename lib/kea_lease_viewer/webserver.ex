@@ -3,7 +3,9 @@ defmodule KeaLeaseViewer.Webserver do
   require EEx
   require Logger
 
-  plug RemoteIp
+  plug RemoteIp, clients: ~w[10.0.0.0/8]
+  plug Plug.Logger, log: :debug
+
   plug :match
   plug :dispatch
 
@@ -12,8 +14,9 @@ defmodule KeaLeaseViewer.Webserver do
   get "/" do
     page =
       try do
-        # get_leases_for_ip(conn.remote_ip)
-        KeaLeaseViewer.SocketConnector.get_all_leases()
+        Logger.debug("Request from #{inspect(conn.remote_ip)}")
+
+        get_leases_for_ip(conn.remote_ip)
         |> Enum.map(&mac_vendor_lookup/1)
         |> Enum.map(&parse_timestamps/1)
         |> Enum.sort_by(fn lease -> {lease."subnet-id", lease."ip-address"} end)

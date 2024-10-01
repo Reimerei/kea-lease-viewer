@@ -25,9 +25,9 @@
       <tr>
         <th>IP</th>
         <th>Subnet</th>
+        <th>Hostname</th>
         <th>Mac</th>
         <th>Vendor</th>
-        <th>Hostname</th>
         <th>Starts</th>
         <th>Ends</th>
       </tr>
@@ -36,9 +36,9 @@
         <tr>
           <td><%= lease."ip-address" %></td>
           <td><%= lease."subnet-id" %></td>
+          <td><%= lease.hostname %></td>
           <td><%= lease."hw-address" %></td>
           <td><%= lease.vendor %></td>
-          <td><%= lease.hostname %></td>
           <td><%= lease.starts %></td>
           <td><%= lease.ends %></td>
         </tr>
