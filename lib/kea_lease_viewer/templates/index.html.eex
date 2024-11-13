@@ -18,7 +18,6 @@
   <head>
     <meta charset="UTF-8">
     <title>DHCP Leases</title>
-    <meta http-equiv="refresh" content="30">
   </head>
   <body>
     <table>

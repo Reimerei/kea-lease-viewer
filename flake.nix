@@ -29,8 +29,7 @@
     }:
       with nixpkgs.lib; let
         pname = "kea-lease-viewer";
-        version = "0.1.0";
-        # beamPackages = pkgs.beam.packagesWith pkgs.beam.interpreters.erlang_27;
+        version = "0.2.0";
         beamPackages = pkgs.beamPackages;
         mix_release = beamPackages.mixRelease {
           inherit version pname;

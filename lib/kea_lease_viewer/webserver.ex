@@ -17,6 +17,7 @@ defmodule KeaLeaseViewer.Webserver do
         Logger.debug("Request from #{inspect(conn.remote_ip)}")
 
         get_leases_for_ip(conn.remote_ip)
+        |> Enum.filter(&lease_expired?/1)
         |> Enum.map(&mac_vendor_lookup/1)
         |> Enum.map(&parse_timestamps/1)
         |> Enum.sort_by(fn lease -> {lease."subnet-id", lease."ip-address"} end)
@@ -76,6 +77,9 @@ defmodule KeaLeaseViewer.Webserver do
       IP.Prefix.contains_address?(subnet, IP.Address.from_tuple!(ip_tuple))
     end)
   end
+
+  defp lease_expired?(%{state: 0}), do: true
+  defp lease_expired?(_), do: false
 
   defp mac_vendor_lookup(%{"hw-address": mac} = lease) do
     case KeaLeaseViewer.MacVendor.vendor_lookup(mac) do
