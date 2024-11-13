@@ -1,9 +1,23 @@
 defmodule KeaLeaseViewer.SocketConnector do
   require Logger
 
-  def get_subnets() do
+  def list_commands() do
+    {:ok, commands} = send_command(%{command: "list-commands"})
+    commands
+  end
+
+  def get_config() do
     {:ok, config} = send_command(%{command: "config-get"})
-    %{Dhcp4: %{subnet4: subnets}} = config
+    config
+  end
+
+  def get_status() do
+    {:ok, config} = send_command(%{command: "status-get"})
+    config
+  end
+
+  def list_subnets() do
+    %{Dhcp4: %{subnet4: subnets}} = get_config()
 
     subnets
     |> Enum.map(fn subnet ->
@@ -14,10 +28,10 @@ defmodule KeaLeaseViewer.SocketConnector do
     end)
   end
 
-  def get_subnets_cached() do
+  def list_subnets_cached() do
     case Application.fetch_env(:kea_lease_viewer, :subnets) do
       :error ->
-        subnets = get_subnets()
+        subnets = list_subnets()
         Application.put_env(:kea_lease_viewer, :subnets, subnets)
         subnets
 
@@ -26,7 +40,7 @@ defmodule KeaLeaseViewer.SocketConnector do
     end
   end
 
-  def get_leases(subnet_id) do
+  def get_leases_for_subnet(subnet_id) do
     command = %{
       command: "lease4-get-all",
       arguments: %{subnets: [subnet_id]}
@@ -36,9 +50,9 @@ defmodule KeaLeaseViewer.SocketConnector do
     leases
   end
 
-  def get_all_leases() do
+  def get_leases() do
     subnet_ids =
-      get_subnets_cached()
+      list_subnets_cached()
       |> Enum.map(& &1.id)
 
     command = %{

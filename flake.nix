@@ -69,9 +69,15 @@
             };
 
             adminSubnets = mkOption {
-              type = types.str;
+              type = types.listOf types.str;
               description = "Subnets that can see all leases.";
-              default = "";
+              default = [];
+            };
+
+            disabledSubnets = mkOption {
+              type = types.listOf types.str;
+              description = "Subnets that cannot see any leases.";
+              default = [];
             };
           };
         };
@@ -96,7 +102,8 @@
               LISTEN_ADDRESS = cfg.listenAddress;
               KEA_SOCKET_PATH = cfg.keaSocketPath;
               RELEASE_DISTRIBUTION = "none";
-              ADMIN_SUBNETS = cfg.adminSubnets;
+              ADMIN_SUBNETS = builtins.concatStringsSep "," cfg.adminSubnets;
+              DISABLED_SUBNETS = builtins.concatStringsSep "," cfg.disabledSubnets;
             };
 
             serviceConfig = {

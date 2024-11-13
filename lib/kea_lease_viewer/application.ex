@@ -24,9 +24,12 @@ defmodule KeaLeaseViewer.Application do
   end
 
   defp startup_message() do
-    """
-      Admin Subnets: #{inspect(Application.fetch_env!(:kea_lease_viewer, :admin_subnets))}
-    """
-    |> Logger.info()
+    Logger.info(
+      "Admin Subnets: #{inspect(Application.fetch_env!(:kea_lease_viewer, :admin_subnets))}"
+    )
+
+    Logger.info(
+      "Disabled Subnets: #{inspect(Application.fetch_env!(:kea_lease_viewer, :disabled_subnets))}"
+    )
   end
 end

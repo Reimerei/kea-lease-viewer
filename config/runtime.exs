@@ -16,4 +16,5 @@ config :kea_lease_viewer,
   listen_address: System.fetch_env!("LISTEN_ADDRESS"),
   socket_path: System.fetch_env!("KEA_SOCKET_PATH"),
   timezone: "Europe/Berlin",
-  admin_subnets: System.get_env("ADMIN_SUBNETS", "") |> Helper.parse_subnets()
+  admin_subnets: System.get_env("ADMIN_SUBNETS", "") |> Helper.parse_subnets(),
+  disabled_subnets: System.get_env("DISABLED_SUBNETS", "") |> Helper.parse_subnets()

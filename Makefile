@@ -1,6 +1,7 @@
-KEA_HOST=router.lif.lol
-export KEA_SOCKET_PATH=/tmp/kea/dhcp4.sock
+KEA_HOST=10.5.0.1
+export KEA_SOCKET_PATH=/tmp/kea_dhcp4.sock
 export ADMIN_SUBNETS=127.0.0.1/24, 10.5.0.0/16
+# export DISABLED_SUBNETS=127.0.0.1/24
 
 run:
 	nix develop
