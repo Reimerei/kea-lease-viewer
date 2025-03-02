@@ -17,11 +17,27 @@ defmodule KeaLeaseViewer.Webserver do
         Logger.debug("Request from #{inspect(conn.remote_ip)}")
 
         get_leases_for_ip(conn.remote_ip)
-        |> Enum.filter(&lease_expired?/1)
-        |> Enum.map(&mac_vendor_lookup/1)
-        |> Enum.map(&parse_timestamps/1)
-        |> Enum.sort_by(fn lease -> {lease."subnet-id", lease."ip-address"} end)
-        |> render()
+        |> render_page()
+
+      catch
+        error ->
+          msg = "Error rendering page: #{inspect(error)}"
+          Logger.error(msg)
+          msg
+      end
+
+    conn
+    |> send_resp(200, page)
+  end
+
+  get "/all" do
+    page =
+      try do
+        Logger.debug("Admin Request from #{inspect(conn.remote_ip)}")
+
+        KeaLeaseViewer.SocketConnector.get_leases()
+        |> render_page()
+
       catch
         error ->
           msg = "Error rendering page: #{inspect(error)}"
@@ -37,11 +53,20 @@ defmodule KeaLeaseViewer.Webserver do
     send_resp(conn, 404, "not found")
   end
 
+  def render_page(leases) do
+    leases
+    |> Enum.filter(&lease_expired?/1)
+    |> Enum.map(&mac_vendor_lookup/1)
+    |> Enum.map(&parse_timestamps/1)
+    |> Enum.sort_by(fn lease -> {lease."subnet-id", lease."ip-address"} end)
+    |> render()
+  end
+
   def get_leases_for_ip(ip_tuple) do
-    case {is_admin?(ip_tuple), is_disabled?(ip_tuple)} do
-      {_, true} -> []
-      {true, _} -> KeaLeaseViewer.SocketConnector.get_leases()
-      {false, false} -> get_subnet_leases(ip_tuple)
+    if is_disabled?(ip_tuple) do
+      []
+    else
+      get_subnet_leases(ip_tuple)
     end
   end
 
@@ -58,15 +83,6 @@ defmodule KeaLeaseViewer.Webserver do
       %{id: id} ->
         KeaLeaseViewer.SocketConnector.get_leases_for_subnet(id)
     end
-  end
-
-  defp is_admin?(ip_tuple) do
-    admin_subnets = Application.fetch_env!(:kea_lease_viewer, :admin_subnets)
-
-    admin_subnets
-    |> Enum.any?(fn subnet ->
-      IP.Prefix.contains_address?(subnet, IP.Address.from_tuple!(ip_tuple))
-    end)
   end
 
   defp is_disabled?(ip_tuple) do

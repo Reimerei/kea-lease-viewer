@@ -67,12 +67,6 @@
               default = "127.0.0.1";
             };
 
-            adminSubnets = mkOption {
-              type = types.listOf types.str;
-              description = "Subnets that can see all leases.";
-              default = [];
-            };
-
             disabledSubnets = mkOption {
               type = types.listOf types.str;
               description = "Subnets that cannot see any leases.";
@@ -101,7 +95,6 @@
               LISTEN_ADDRESS = cfg.listenAddress;
               KEA_SOCKET_PATH = cfg.keaSocketPath;
               RELEASE_DISTRIBUTION = "none";
-              ADMIN_SUBNETS = builtins.concatStringsSep "," cfg.adminSubnets;
               DISABLED_SUBNETS = builtins.concatStringsSep "," cfg.disabledSubnets;
             };
 
