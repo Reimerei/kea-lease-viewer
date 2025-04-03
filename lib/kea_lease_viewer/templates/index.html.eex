@@ -10,9 +10,20 @@
       border-collapse: collapse;
       border:2px solid #fec300;
       padding: 15px;
+      white-space: nowrap;
     }
     table, td {
       font-family: monospace;
+    }
+    .sort-link {
+      color: white;
+      text-decoration: none;
+    }
+    .sort-link:hover {
+      color: #fec300;
+    }
+    .current-sort {
+      color: #fec300;
     }
   </style>
   <head>
@@ -22,24 +33,29 @@
   <body>
     <table>
       <tr>
-        <th>IP</th>
-        <th>Subnet</th>
-        <th>Hostname</th>
-        <th>Mac</th>
-        <th>Vendor</th>
-        <th>Starts</th>
-        <th>Ends</th>
+        <%= for {field, label} <- columns do %>
+          <th>
+            <%= if elem(sort_by, 0) == field do %>
+              <% next_direction = if elem(sort_by, 1) == :asc, do: "desc", else: "asc" %>
+              <a href="?sort=<%= field %>&dir=<%= next_direction %>" class="sort-link current-sort">
+                <%= label %>
+                <%= if elem(sort_by, 1) == :asc, do: "↓", else: "↑" %>
+              </a>
+            <% else %>
+              <a href="?sort=<%= field %>&dir=asc" class="sort-link">
+                <%= label %>
+                ↕
+              </a>
+            <% end %>
+          </th>
+        <% end %>
       </tr>
 
       <%= for lease <- leases do %>
         <tr>
-          <td><%= lease."ip-address" %></td>
-          <td><%= lease."subnet-id" %></td>
-          <td><%= lease.hostname %></td>
-          <td><%= lease."hw-address" %></td>
-          <td><%= lease.vendor %></td>
-          <td><%= lease.starts %></td>
-          <td><%= lease.ends %></td>
+          <%= for {field, _} <- columns do %>
+            <td><%= lease[field] %></td>
+          <% end %>
         </tr>
       <% end %>
     </table>
