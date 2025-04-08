@@ -10,6 +10,7 @@ defmodule KeaLeaseViewer.Webserver do
 
   plug Plug.Logger, log: :debug
 
+  plug :handle_errors
   plug :match
   plug :dispatch
 
@@ -23,51 +24,63 @@ defmodule KeaLeaseViewer.Webserver do
     {:ends, "Ends"}
   ]
 
-
   EEx.function_from_file(:def, :render, "lib/kea_lease_viewer/templates/index.html.eex", [:leases, :sort_by, :columns])
 
   get "/" do
-    page =
-      try do
-        Logger.debug("Request from #{inspect(conn.remote_ip)}")
+    Logger.debug("Request from #{inspect(conn.remote_ip)}")
+    sort_by = parse_sort_params(conn.params)
 
-        sort_by = parse_sort_params(conn.params)
+    page = get_leases_for_ip(conn.remote_ip)
+    |> render_page(sort_by)
 
-        get_leases_for_ip(conn.remote_ip)
-        |> render_page(sort_by)
-      catch
-        error ->
-          msg = "Error rendering page: #{inspect(error)}"
-          Logger.error(msg)
-          msg
-      end
-
-    conn
-    |> send_resp(200, page)
+    send_resp(conn, 200, page)
   end
 
   get "/all" do
-    page =
-      try do
-        Logger.debug("Admin Request from #{inspect(conn.remote_ip)}")
+    Logger.debug("Admin Request from #{inspect(conn.remote_ip)}")
+    sort_by = parse_sort_params(conn.params)
 
-        sort_by = parse_sort_params(conn.params)
+    page = KeaLeaseViewer.SocketConnector.get_leases()
+    |> render_page(sort_by)
 
-        KeaLeaseViewer.SocketConnector.get_leases()
-        |> render_page(sort_by)
-      catch
-        error ->
-          msg = "Error rendering page: #{inspect(error)}"
-          Logger.error(msg)
-          msg
-      end
+    send_resp(conn, 200, page)
+  end
 
-    conn
-    |> send_resp(200, page)
+  get "/delete" do
+    ip = conn.params["ip"]
+    return_path = List.first(get_req_header(conn, "referer")) || "/"
+    Logger.debug("Delete request from #{inspect(conn.remote_ip)} for IP #{ip}")
+
+    case KeaLeaseViewer.SocketConnector.delete_lease(ip) do
+      {:ok, _result} ->
+        conn
+        |> put_resp_header("location", return_path)
+        |> send_resp(302, "")
+
+      {:error, reason} ->
+        Logger.error("Failed to delete lease for IP #{ip}: #{inspect(reason)}")
+        send_resp(conn, 500, "Failed to delete lease")
+    end
   end
 
   match _ do
     send_resp(conn, 404, "not found")
+  end
+
+  defp handle_errors(conn, _opts) do
+    Plug.Conn.register_before_send(conn, fn conn ->
+      try do
+        conn
+      catch
+        error ->
+          msg = "Error processing request: #{inspect(error)}"
+          Logger.error(msg)
+
+          conn
+          |> Plug.Conn.resp(500, msg)
+          |> Plug.Conn.halt()
+      end
+    end)
   end
 
   def render_page(leases, sort_by) do
@@ -140,6 +153,8 @@ defmodule KeaLeaseViewer.Webserver do
 
   defp sort_leases(leases, {sort_field, direction}) when is_atom(sort_field) and is_atom(direction) do
     case sort_field do
+      nil ->
+        leases
       :"ip-address" ->
         Enum.sort_by(leases, &(IP.Address.from_string!(&1[:"ip-address"]).address), direction)
       field ->
@@ -153,8 +168,5 @@ defmodule KeaLeaseViewer.Webserver do
     {String.to_existing_atom(field), String.to_existing_atom(direction)}
   end
 
-  defp parse_sort_params(_) do
-    {:"subnet-id", :asc}
-  end
-
+  defp parse_sort_params(_), do: {nil, nil}
 end

@@ -25,6 +25,19 @@
     .current-sort {
       color: #fec300;
     }
+    .delete-button {
+      color: white;
+      text-decoration: none;
+      padding: 4px 10px;
+      border: 1px solid rgba(254, 195, 0, 0.7);  /* Very subtle yellow border */
+      border-radius: 3px;
+      transition: all 0.2s ease;
+    }
+
+    .delete-button:hover {
+      background-color: #fec300;
+      color: #003a3e;
+    }
   </style>
   <head>
     <meta charset="UTF-8">
@@ -49,6 +62,7 @@
             <% end %>
           </th>
         <% end %>
+        <th></th>
       </tr>
 
       <%= for lease <- leases do %>
@@ -56,6 +70,9 @@
           <%= for {field, _} <- columns do %>
             <td><%= lease[field] %></td>
           <% end %>
+          <td style="text-align: center;">
+            <a href="/delete?ip=<%= lease[:"ip-address"] %>" class="delete-button">delete</a>
+          </td>
         </tr>
       <% end %>
     </table>

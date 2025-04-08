@@ -64,6 +64,15 @@ defmodule KeaLeaseViewer.SocketConnector do
     leases
   end
 
+  def delete_lease(ip_address) when is_binary(ip_address) do
+    command = %{
+      command: "lease4-del",
+      arguments: %{"ip-address": ip_address}
+    }
+
+    send_command(command)
+  end
+
   def send_command(command) when is_map(command) do
     socket_path = Application.fetch_env!(:kea_lease_viewer, :socket_path)
     gen_tcp_opts = [:binary, active: true, reuseaddr: true]
@@ -96,6 +105,9 @@ defmodule KeaLeaseViewer.SocketConnector do
   end
 
   defp parse_response(%{arguments: result}), do: {:ok, result}
+
+  defp parse_response(%{text: "IPv4 lease deleted.", result: 0}), do: {:ok, :deleted}
+  defp parse_response(%{text: "IPv4 lease not found.", result: 3}), do: {:error, :not_found}
 
   defp parse_response(other) do
     Logger.error("Unexpected response from Kea: #{inspect(other)}")
