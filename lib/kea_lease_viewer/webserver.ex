@@ -11,6 +11,7 @@ defmodule KeaLeaseViewer.Webserver do
   plug Plug.Logger, log: :debug
 
   plug :handle_errors
+  plug :check_admin_header
   plug :match
   plug :dispatch
 
@@ -24,25 +25,27 @@ defmodule KeaLeaseViewer.Webserver do
     {:ends, "Ends"}
   ]
 
-  EEx.function_from_file(:def, :render, "lib/kea_lease_viewer/templates/index.html.eex", [:leases, :sort_by, :columns])
+  EEx.function_from_file(:def, :render, "lib/kea_lease_viewer/templates/index.html.eex", [
+    :leases,
+    :sort_by,
+    :columns
+  ])
 
   get "/" do
-    Logger.debug("Request from #{inspect(conn.remote_ip)}")
     sort_by = parse_sort_params(conn.params)
 
-    page = get_leases_for_ip(conn.remote_ip)
-    |> render_page(sort_by)
+    Logger.debug(
+      "Request from #{inspect(conn.remote_ip)}. Admin: #{inspect(conn.assigns.is_admin)}"
+    )
 
-    send_resp(conn, 200, page)
-  end
+    leases =
+      if conn.assigns.is_admin do
+        KeaLeaseViewer.SocketConnector.get_leases()
+      else
+        get_leases_for_ip(conn.remote_ip)
+      end
 
-  get "/all" do
-    Logger.debug("Admin Request from #{inspect(conn.remote_ip)}")
-    sort_by = parse_sort_params(conn.params)
-
-    page = KeaLeaseViewer.SocketConnector.get_leases()
-    |> render_page(sort_by)
-
+    page = leases |> render_page(sort_by)
     send_resp(conn, 200, page)
   end
 
@@ -90,6 +93,16 @@ defmodule KeaLeaseViewer.Webserver do
     |> Enum.map(&parse_timestamps/1)
     |> sort_leases(sort_by)
     |> render(sort_by, @columns)
+  end
+
+  defp check_admin_header(conn, _opts) do
+    is_admin =
+      case get_req_header(conn, "x-admin-request") do
+        ["true"] -> true
+        _ -> false
+      end
+
+    assign(conn, :is_admin, is_admin)
   end
 
   def get_leases_for_ip(ip_tuple) do
@@ -151,16 +164,23 @@ defmodule KeaLeaseViewer.Webserver do
     |> Calendar.strftime("%Y-%m-%d %H:%M:%S")
   end
 
-  defp sort_leases(leases, {sort_field, direction}) when is_atom(sort_field) and is_atom(direction) do
+  defp sort_leases(leases, {sort_field, direction})
+       when is_atom(sort_field) and is_atom(direction) do
     case sort_field do
       nil ->
         leases
+
       :"ip-address" ->
-        Enum.sort_by(leases, &(IP.Address.from_string!(&1[:"ip-address"]).address), direction)
+        Enum.sort_by(leases, &IP.Address.from_string!(&1[:"ip-address"]).address, direction)
+
       field ->
-        Enum.sort_by(leases, fn lease ->
-          {lease[field], IP.Address.from_string!(lease[:"ip-address"]).address}
-        end, direction)
+        Enum.sort_by(
+          leases,
+          fn lease ->
+            {lease[field], IP.Address.from_string!(lease[:"ip-address"]).address}
+          end,
+          direction
+        )
     end
   end
 
