@@ -72,18 +72,34 @@
               description = "Subnets that cannot see any leases.";
               default = [];
             };
+
+            user = mkOption {
+              type = types.str;
+              default = pname;
+              description = "User to run the service as.";
+            };
+
+            group = mkOption {
+              type = types.str;
+              default = pname;
+              description = "Group to run the service as.";
+            };
           };
         };
 
         config = let
           cfg = config.services.${pname};
         in {
-          users.users.${pname} = {
-            name = pname;
-            group = pname;
-            isSystemUser = true;
+          users.users = mkIf (cfg.user == pname) {
+            ${pname} = {
+              name = pname;
+              group = cfg.group;
+              isSystemUser = true;
+            };
           };
-          users.groups.${pname} = {};
+          users.groups = mkIf (cfg.group == pname) {
+            ${pname} = {};
+          };
 
           systemd.services.${pname} = {
             enable = cfg.enable;
@@ -100,7 +116,8 @@
 
             serviceConfig = {
               Type = "exec";
-              User = pname;
+              User = cfg.user;
+              Group = cfg.group;
 
               ExecStart = ''
                 ${mix_release}/bin/release start
