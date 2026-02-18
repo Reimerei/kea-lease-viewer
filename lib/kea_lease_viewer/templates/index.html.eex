@@ -38,6 +38,13 @@
       background-color: #fec300;
       color: #003a3e;
     }
+    .hostname-link {
+      color: white;
+      text-decoration: none;
+    }
+    .hostname-link:hover {
+      color: #fec300;
+    }
   </style>
   <head>
     <meta charset="UTF-8">
@@ -68,7 +75,13 @@
       <%= for lease <- leases do %>
         <tr>
           <%= for {field, _} <- columns do %>
-            <td><%= lease[field] %></td>
+            <td>
+              <%= if field == :hostname && lease[field] not in [nil, ""] do %>
+                <a href="http://<%= lease[field] %>" target="_blank" class="hostname-link"><%= lease[field] %></a>
+              <% else %>
+                <%= lease[field] %>
+              <% end %>
+            </td>
           <% end %>
           <td style="text-align: center;">
             <a href="/delete?ip=<%= lease[:"ip-address"] %>" class="delete-button">delete</a>
