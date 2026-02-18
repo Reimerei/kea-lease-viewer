@@ -28,7 +28,8 @@ defmodule KeaLeaseViewer.Webserver do
   EEx.function_from_file(:def, :render, "lib/kea_lease_viewer/templates/index.html.eex", [
     :leases,
     :sort_by,
-    :columns
+    :columns,
+    :error
   ])
 
   get "/" do
@@ -38,15 +39,22 @@ defmodule KeaLeaseViewer.Webserver do
       "Request from #{inspect(conn.remote_ip)}. Admin: #{inspect(conn.assigns.is_admin)}"
     )
 
-    leases =
+    result =
       if conn.assigns.is_admin do
         KeaLeaseViewer.SocketConnector.get_leases()
       else
         get_leases_for_ip(conn.remote_ip)
       end
 
-    page = leases |> render_page(sort_by)
-    send_resp(conn, 200, page)
+    page =
+      case result do
+        {:ok, leases} -> render_page(leases, sort_by)
+        {:error, reason} -> render_error(reason, sort_by)
+      end
+
+    conn
+    |> put_resp_content_type("text/html")
+    |> send_resp(200, page)
   end
 
   get "/delete" do
@@ -92,7 +100,20 @@ defmodule KeaLeaseViewer.Webserver do
     |> Enum.map(&mac_vendor_lookup/1)
     |> Enum.map(&parse_timestamps/1)
     |> sort_leases(sort_by)
-    |> render(sort_by, @columns)
+    |> render(sort_by, @columns, nil)
+  end
+
+  defp render_error(reason, sort_by) do
+    message =
+      case reason do
+        :enoent -> "Kea socket not found — is the socket mounted?"
+        :econnrefused -> "Connection to Kea socket refused."
+        :unexpected_kea_response -> "Unexpected response from Kea."
+        %Jason.DecodeError{} -> "No response from Kea (timeout)."
+        other -> "Could not connect to Kea: #{inspect(other)}"
+      end
+
+    render([], sort_by, @columns, message)
   end
 
   defp check_admin_header(conn, _opts) do
@@ -107,7 +128,7 @@ defmodule KeaLeaseViewer.Webserver do
 
   def get_leases_for_ip(ip_tuple) do
     if is_disabled?(ip_tuple) do
-      []
+      {:ok, []}
     else
       get_subnet_leases(ip_tuple)
     end
@@ -116,15 +137,17 @@ defmodule KeaLeaseViewer.Webserver do
   defp get_subnet_leases(ip_tuple) do
     ip = IP.Address.from_tuple!(ip_tuple)
 
-    KeaLeaseViewer.SocketConnector.list_subnets_cached()
-    |> Enum.find(fn subnet -> IP.Prefix.contains_address?(subnet.prefix, ip) end)
-    |> case do
+    with {:ok, subnets} <- KeaLeaseViewer.SocketConnector.list_subnets_cached(),
+         subnet when not is_nil(subnet) <-
+           Enum.find(subnets, fn s -> IP.Prefix.contains_address?(s.prefix, ip) end) do
+      KeaLeaseViewer.SocketConnector.get_leases_for_subnet(subnet.id)
+    else
       nil ->
         Logger.error("No subnets found for IP: #{inspect(ip_tuple)}")
-        []
+        {:ok, []}
 
-      %{id: id} ->
-        KeaLeaseViewer.SocketConnector.get_leases_for_subnet(id)
+      error ->
+        error
     end
   end
 

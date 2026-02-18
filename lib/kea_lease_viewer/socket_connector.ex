@@ -7,8 +7,7 @@ defmodule KeaLeaseViewer.SocketConnector do
   end
 
   def get_config() do
-    {:ok, config} = send_command(%{command: "config-get"})
-    config
+    send_command(%{command: "config-get"})
   end
 
   def get_status() do
@@ -17,26 +16,27 @@ defmodule KeaLeaseViewer.SocketConnector do
   end
 
   def list_subnets() do
-    %{Dhcp4: %{subnet4: subnets}} = get_config()
-
-    subnets
-    |> Enum.map(fn subnet ->
-      %{
-        prefix: IP.Prefix.from_string!(subnet.subnet),
-        id: subnet.id
-      }
-    end)
+    with {:ok, %{Dhcp4: %{subnet4: subnets}}} <- get_config() do
+      {:ok,
+       Enum.map(subnets, fn subnet ->
+         %{
+           prefix: IP.Prefix.from_string!(subnet.subnet),
+           id: subnet.id
+         }
+       end)}
+    end
   end
 
   def list_subnets_cached() do
     case Application.fetch_env(:kea_lease_viewer, :subnets) do
       :error ->
-        subnets = list_subnets()
-        Application.put_env(:kea_lease_viewer, :subnets, subnets)
-        subnets
+        with {:ok, subnets} <- list_subnets() do
+          Application.put_env(:kea_lease_viewer, :subnets, subnets)
+          {:ok, subnets}
+        end
 
       {:ok, subnets} ->
-        subnets
+        {:ok, subnets}
     end
   end
 
@@ -46,22 +46,18 @@ defmodule KeaLeaseViewer.SocketConnector do
       arguments: %{subnets: [subnet_id]}
     }
 
-    {:ok, %{leases: leases}} = send_command(command)
-    leases
+    with {:ok, %{leases: leases}} <- send_command(command) do
+      {:ok, leases}
+    end
   end
 
   def get_leases() do
-    subnet_ids =
-      list_subnets_cached()
-      |> Enum.map(& &1.id)
-
-    command = %{
-      command: "lease4-get-all",
-      arguments: %{subnets: subnet_ids}
-    }
-
-    {:ok, %{leases: leases}} = send_command(command)
-    leases
+    with {:ok, subnets} <- list_subnets_cached(),
+         subnet_ids = Enum.map(subnets, & &1.id),
+         command = %{command: "lease4-get-all", arguments: %{subnets: subnet_ids}},
+         {:ok, %{leases: leases}} <- send_command(command) do
+      {:ok, leases}
+    end
   end
 
   def delete_lease(ip_address) when is_binary(ip_address) do

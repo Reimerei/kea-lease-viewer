@@ -3,7 +3,8 @@ export KEA_SOCKET_PATH=/tmp/kea_dhcp4.sock
 # export DISABLED_SUBNETS=127.0.0.1/24
 
 run:
-	nix develop
+	# nix develop
+	PORT=4000 LISTEN_ADDRESS=127.0.0.1 iex -S mix
 
 deps-update:
 	mix deps.update --all

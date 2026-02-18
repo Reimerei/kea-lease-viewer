@@ -45,12 +45,22 @@
     .hostname-link:hover {
       color: #fec300;
     }
+    .error-banner {
+      color: #fec300;
+      border: 2px solid #fec300;
+      padding: 12px 20px;
+      margin-bottom: 16px;
+      font-family: monospace;
+    }
   </style>
   <head>
     <meta charset="UTF-8">
     <title>DHCP Leases</title>
   </head>
   <body>
+    <%= if error do %>
+      <div class="error-banner">&#9888; <%= error %></div>
+    <% end %>
     <table>
       <tr>
         <%= for {field, label} <- columns do %>
